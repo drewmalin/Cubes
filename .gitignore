@@ -4,3 +4,6 @@
 *.jar
 *.war
 *.ear
+
+# Hidden files leftover from transfers #
+*.DS_Store
