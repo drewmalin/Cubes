@@ -2,5 +2,6 @@
     <info organisation="org.apache" module="ivy"/>
     <dependencies>
         <dependency org="org.lwjgl.lwjgl" name="lwjgl" rev="2.8.5"/> 
+        <dependency org="junit" name="junit" rev="4.11"/>
     </dependencies>
 </ivy-module>
