@@ -1,0 +1,138 @@
+<project name="${MY_PROJECT_NAME}" xmlns:ivy="antlib:org.apache.ivy.ant" default="run_full" basedir=".">
+    <description>
+        ${MY_PROJECT_DESCRIPTION}
+    </description>
+    <property name="src"    location="src"/>
+    <property name="build"  location="bin"/>
+    <property name="dist"   location="dist"/>
+    <property name="lib"    location="lib"/>
+    <property name="logs"   location="logs"/>
+
+    <!--
+        Link properties file to define items externally.
+    -->
+    <property file="my.properties"/>
+
+    <!-- 
+        Setup classpath for project. Append additional classpath info
+        to the local machine's existing java.class.path, read from
+        external properties files. Includes all library folders in all
+        subdirectories of the lib directory with the .jar extension.
+    -->
+    <path id="classpath" cache="true">
+        <pathelement path="${java.class.path}/"/>
+        <pathelement path="${MY_JAVA_HOME}"/>
+        <fileset dir="${lib}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+    
+    <!--
+        Create the path for junit tests. The testpath path variable will
+        be persisted as the build directory, using that directory as the
+        target for junit tests.
+    -->
+    <path id="testpath">
+        <pathelement location="${build}"/>
+    </path>
+
+    <!--
+        Primary target: run_full. This will be called if the user simply
+        types 'ant' in the command line. Depends on all other targets.
+    -->
+    <target name="run_full" depends="clean,init,resolve,compile,dist,run"/>
+
+    <!--
+        First dependent target: init. Creates directories for later use.
+    -->
+    <target name="init">
+        <tstamp/>
+        <mkdir dir="${build}"/>
+        <mkdir dir="${logs}"/>
+    </target>
+
+    <!--
+        Second dependent target: resolve. Retrieves all dependencies existing
+        in ivy.xml, saving them to lib/ by default.
+    -->
+    <target name="resolve" description="retrieve dependencies">
+        <ivy:retrieve />
+    </target>
+    
+    <!--
+        Third dependent target: compile. Uses the src directory along with the
+        classpath path (defined above) to create all *.class files, saving them
+        to the build directory.
+    -->
+    <target name="compile" description="compile source">
+        <javac srcdir="${src}" destdir="${build}" includeantruntime="false">
+            <classpath>
+                <path refid="classpath"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <!-- 
+        Fourth dependent target: dist. Uses the compiled class files to construct
+        a final distributable jar file. Uses the manifest specified below to
+        specify the entry main class.
+    -->
+    <target name="dist" description="generate dist">
+        <mkdir dir="${dist}"/>
+        <jar jarfile="${dist}/${MY_PROJECT_NAME}.jar" basedir="${build}">
+            <manifest>
+                <attribute name="Main-Class" value="${MY_MAIN_CLASS}"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <!--
+        Fifth dependent target: run. Takes the jar file created above and runs it,
+        using the classpath defined earlier. Additionally takes a command line argument
+        which determines whether or not logging should be enabled.
+    -->
+    <target name="run" description="run the project">
+        <java fork="true" classname="${MY_MAIN_CLASS}">
+            <classpath>
+                <path refid="classpath"/>
+                <path location="${dist}/${MY_PROJECT_NAME}.jar"/>
+            </classpath>
+            <arg value="${ENABLE_LOGGING}"/>
+            <jvmarg value="${JVM_ARGS}"/>
+        </java>
+    </target>
+
+    <!--
+        Junit unit testing target. Target applies Junit testsuites against all compiled
+        classes matching the regex *Test.class which exist in any directory (hence the
+        **/Test.java). Uses both the global classpath and the specific build testpath.
+    -->
+    <target name="test">
+        <junit fork="yes" printsummary="yes" haltonfailure="yes">
+            <classpath> 
+                <path refid="classpath"/>
+                <path refid="testpath"/>
+            </classpath>
+            <formatter type="plain" usefile="false"/>
+            <batchtest fork="yes">
+                <fileset dir="${build}" includes="**/*Test.class"/>
+            </batchtest>
+        </junit>
+    </target>
+
+    <!--
+        Basic clean.
+    -->
+    <target name="clean" description="clean up">
+        <delete dir="${build}"/>
+    </target>
+
+    <!--
+        Full clean.
+    -->
+    <target name="clean_full" description="full clean">
+        <delete dir="${build}"/>
+        <delete dir="${dist}"/>
+        <delete dir="${logs}"/>
+    </target>
+</project>
