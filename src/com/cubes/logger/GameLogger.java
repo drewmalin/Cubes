@@ -12,7 +12,7 @@ import java.util.logging.*;
  */
 public class GameLogger {
 
-    private final static Logger LOGGER = Logger.getLogger(GameLogger.class.getPackage().getName());
+    private final static Logger LOGGER = Logger.getLogger("");
     private static boolean enabled = false;
 
     public enum GameLevel {
@@ -25,7 +25,7 @@ public class GameLogger {
     public static void init(boolean flag) {
         String timestamp = Long.toString(System.currentTimeMillis()).substring(6);
         enabled = flag;
-        LOGGER.setLevel(Level.ALL);
+        LOGGER.setLevel(Level.INFO);
 
         try {
             FileHandler fileHandler = new FileHandler("logs/build_" + timestamp + ".log");
@@ -41,12 +41,15 @@ public class GameLogger {
                     }
                 }
             );
+            // Disable logging to console
+            LOGGER.removeHandler(LOGGER.getHandlers()[0]);
+            // Enable logging to file
             LOGGER.addHandler(fileHandler);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        LOGGER.log(Level.WARNING,"something to log");
+        LOGGER.log(Level.INFO,"Logger created. Logging enabled.");
 
     }
 
