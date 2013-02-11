@@ -37,7 +37,10 @@
     </path>
 
     <!--
-        Determine the current operating system.
+        Determine the current operating system. As of LWJGL 2.8.0, the patterns
+        specified below will be valid for determining the proper jar that compresses
+        operating system-specific natives
+        (http://www.lwjgl.org/wiki/index.php?title=LWJGL_use_in_Maven&oldid=793)
     -->
     <condition property="native_jars" value="*natives-osx*.jar">
         <os family="mac"/>
@@ -56,7 +59,7 @@
     <target name="run_full" depends="clean,init,resolve,unzip_natives,compile,dist,run"/>
 
     <!--
-        First dependent target: init. Creates directories for later use.
+        Target: init. Creates directories for later use.
     -->
     <target name="init">
         <tstamp/>
@@ -87,7 +90,7 @@
     </target>
 
     <!-- 
-        Fourth dependent target: dist. Uses the compiled class files to construct
+        Target: dist. Uses the compiled class files to construct
         a final distributable jar file. Uses the manifest specified below to
         specify the entry main class.
     -->
@@ -134,7 +137,7 @@
         classes matching the regex *Test.class which exist in any directory (hence the
         **/Test.java). Uses both the global classpath and the specific build testpath.
     -->
-    <target name="test">
+    <target name="test_full">
         <junit fork="yes" printsummary="yes" haltonfailure="yes">
             <classpath> 
                 <path refid="classpath"/>
