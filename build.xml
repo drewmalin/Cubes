@@ -37,10 +37,23 @@
     </path>
 
     <!--
+        Determine the current operating system.
+    -->
+    <condition property="native_jars" value="*natives-osx*.jar">
+        <os family="mac"/>
+    </condition>
+    <condition property="native_jars" value="*natives-windows*.jar">
+        <os family="windows"/>
+    </condition>
+    <condition property="native_jars" value="*natives-linux*.jar">
+        <os family="unix"/>
+    </condition>
+
+    <!--
         Primary target: run_full. This will be called if the user simply
         types 'ant' in the command line. Depends on all other targets.
     -->
-    <target name="run_full" depends="clean,init,resolve,compile,dist,run"/>
+    <target name="run_full" depends="clean,init,resolve,unzip_natives,compile,dist,run"/>
 
     <!--
         First dependent target: init. Creates directories for later use.
@@ -48,19 +61,20 @@
     <target name="init">
         <tstamp/>
         <mkdir dir="${build}"/>
+        <mkdir dir="${lib}"/>
         <mkdir dir="${logs}"/>
     </target>
-
+    
     <!--
-        Second dependent target: resolve. Retrieves all dependencies existing
+        Target: resolve. Retrieves all dependencies existing
         in ivy.xml, saving them to lib/ by default.
     -->
     <target name="resolve" description="retrieve dependencies">
         <ivy:retrieve />
     </target>
-    
+   
     <!--
-        Third dependent target: compile. Uses the src directory along with the
+        Target: compile. Uses the src directory along with the
         classpath path (defined above) to create all *.class files, saving them
         to the build directory.
     -->
@@ -85,20 +99,33 @@
             </manifest>
         </jar>
     </target>
+    
+    <!-- 
+        Target: unzip_natives. Unpacks native files from included jars
+    -->
+    <target name="unzip_natives">
+        <mkdir dir="${lib}/native"/>
+        <unzip dest="${lib}/native">
+            <fileset dir="${lib}">
+                <include name="${native_jars}"/>
+            </fileset>
+        </unzip>
+    </target>
 
     <!--
-        Fifth dependent target: run. Takes the jar file created above and runs it,
+        Target: run. Takes the jar file created above and runs it,
         using the classpath defined earlier. Additionally takes a command line argument
         which determines whether or not logging should be enabled.
     -->
     <target name="run" description="run the project">
+        <echo message="Running ${MY_PROJECT_NAME}. Runtime logging available at: ${logs}"/>
         <java fork="true" classname="${MY_MAIN_CLASS}">
             <classpath>
                 <path refid="classpath"/>
                 <path location="${dist}/${MY_PROJECT_NAME}.jar"/>
             </classpath>
             <arg value="${ENABLE_LOGGING}"/>
-            <jvmarg value="${JVM_ARGS}"/>
+            <jvmarg value="${JVM_NATIVES}"/>
         </java>
     </target>
 
